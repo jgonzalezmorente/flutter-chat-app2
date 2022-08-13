@@ -1,5 +1,6 @@
+import 'package:chat/services/auth_service.dart';
 import 'package:flutter/material.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:provider/provider.dart';
 import 'package:chat/models/models.dart';
 
 
@@ -13,7 +14,7 @@ class UsuariosScreen extends StatefulWidget {
 
 class _UsuariosScreenState extends State<UsuariosScreen> {
 
-  final RefreshController _refreshController = RefreshController( initialRefresh: false );
+  // final RefreshController _refreshController = RefreshController( initialRefresh: false );
 
   final usuarios = [
     Usuario( uid: '1', nombre: 'María', email: 'test1@test.com', online: true ),
@@ -23,15 +24,22 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    final authService = Provider.of<AuthService>( context );
+    final usuario = authService.usuario;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text( 'Mi nombre', style: TextStyle( color: Colors.black87 ) ),
+        title: Text( usuario!.nombre , style: const TextStyle( color: Colors.black87 ) ),
         centerTitle: true,
         elevation: 1,
         backgroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon( Icons.exit_to_app, color: Colors.black87 ),
-          onPressed: () {},
+          onPressed: () async {
+            await AuthService.deleteToken();
+            Navigator.pushReplacementNamed(context, 'login');
+          },
         ),
         actions: [
           Container(
@@ -41,22 +49,17 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
           )
         ],
       ),
-      body: SmartRefresher(
-        controller: _refreshController,
-        header: WaterDropHeader(
-          complete: Icon( Icons.check, color: Colors.blue[400] ),
-          waterDropColor: Colors.blue[400]!,
-        ),
-        enablePullDown: true,
+      body: RefreshIndicator(
         onRefresh: _cargarUsuarios,
-        child: _listViewUsuarios(), 
-      ),
+        color: Colors.blue[400]!,
+        child: _listViewUsuarios()        
+      )
    );
   }
 
   ListView _listViewUsuarios() {
     return ListView.separated(
-      physics: const BouncingScrollPhysics(),
+      physics: const AlwaysScrollableScrollPhysics(),
       itemBuilder: ( _, i ) => _usuarioListTile( usuarios[i] ), 
       separatorBuilder: ( _, i) => const Divider(), 
       itemCount: usuarios.length
@@ -82,8 +85,8 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
       );
   }
 
-  _cargarUsuarios() async {
-    await Future.delayed(const Duration(milliseconds: 1000));
-    _refreshController.refreshCompleted();
+  Future<void> _cargarUsuarios() async {
+    Future.delayed(const Duration(milliseconds: 1000));
+    // _refreshController.refreshCompleted();
   }
 }
