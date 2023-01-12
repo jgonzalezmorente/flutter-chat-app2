@@ -17,17 +17,22 @@ class Usuario {
     bool online;
     String uid;
 
-    factory Usuario.fromJson(Map<String, dynamic> json) => Usuario(
+    factory Usuario.fromJson(String str) => Usuario.fromMap( json.decode(str) );
+    String toJson() => json.encode(toMap());
+    
+    factory Usuario.fromMap(Map<String, dynamic> json) => Usuario(
         nombre: json['nombre'],
         email: json['email'],
         online: json['online'],
         uid: json['uid'],
     );
 
-    Map<String, dynamic> toJson() => {
+    Map<String, dynamic> toMap() => {
         'nombre': nombre,
         'email': email,
         'online': online,
         'uid': uid,
     };
+
+
 }

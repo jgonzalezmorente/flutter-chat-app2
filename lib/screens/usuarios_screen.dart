@@ -1,6 +1,7 @@
-import 'package:chat/services/auth_service.dart';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:chat/services/services.dart';
 import 'package:chat/models/models.dart';
 
 
@@ -13,19 +14,24 @@ class UsuariosScreen extends StatefulWidget {
 }
 
 class _UsuariosScreenState extends State<UsuariosScreen> {
+  
+  final usuarioService = UsuariosService();
+  
+  List<Usuario> usuarios = [];
 
-  // final RefreshController _refreshController = RefreshController( initialRefresh: false );
+  @override
+  void initState() {
+    _cargarUsuarios();
+    super.initState();
+  }
 
-  final usuarios = [
-    Usuario( uid: '1', nombre: 'María', email: 'test1@test.com', online: true ),
-    Usuario( uid: '2', nombre: 'Melissa', email: 'test2@test.com', online: false ),
-    Usuario( uid: '3', nombre: 'Fernando', email: 'test3@test.com', online: true ),
-  ];
-
+  
   @override
   Widget build(BuildContext context) {
 
     final authService = Provider.of<AuthService>( context );
+    final socketService = Provider.of<SocketService>( context );
+
     final usuario = authService.usuario;
 
     return Scaffold(
@@ -38,14 +44,16 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
           icon: const Icon( Icons.exit_to_app, color: Colors.black87 ),
           onPressed: () async {
             await AuthService.deleteToken();
+            socketService.disconnect();
             Navigator.pushReplacementNamed(context, 'login');
           },
         ),
         actions: [
           Container(
             margin: const EdgeInsets.only( right: 10 ),
-            child: Icon( Icons.check_circle, color: Colors.blue[400]),
-            // child: Icon( Icons.offline_bolt, color: Colors.red[400]),
+            child: ( socketService.serverStatus == ServerStatus.online )
+              ? Icon( Icons.check_circle, color: Colors.blue[400])
+              : Icon( Icons.offline_bolt, color: Colors.red[400]),
           )
         ],
       ),
@@ -82,11 +90,18 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
             borderRadius: BorderRadius.circular(100)
           ),
         ),
+        onTap: () {
+
+          final chatService = Provider.of<ChatService>( context, listen: false );
+          chatService.usuarioPara = usuario;
+          Navigator.pushNamed( context, 'chat' );
+
+        },
       );
   }
 
-  Future<void> _cargarUsuarios() async {
-    Future.delayed(const Duration(milliseconds: 1000));
-    // _refreshController.refreshCompleted();
+  Future<void> _cargarUsuarios() async {    
+    usuarios = await usuarioService.getUsuarios();
+    setState(() {});
   }
 }

@@ -6,8 +6,6 @@ import 'package:chat/services/services.dart';
 import 'package:chat/helpers/helpers.dart';
 
 
-
-
 class LoginScreen extends StatelessWidget {
 
   const LoginScreen({Key? key}) : super(key: key);
@@ -62,7 +60,8 @@ class __FormState extends State<_Form> {
   @override
   Widget build(BuildContext context) {
     
-    final authService = Provider.of<AuthService>( context );
+    final authService   = Provider.of<AuthService>( context );
+    final socketService = Provider.of<SocketService>( context );
 
     return Container(
       margin: const EdgeInsets.only( top: 40 ),
@@ -91,6 +90,7 @@ class __FormState extends State<_Form> {
                 FocusScope.of( context ).unfocus();
                 final loginOk = await authService.login( emailCtrl.text.trim(),  passCtrl.text.trim() );
                 if ( loginOk ) {
+                  socketService.connect();
                   Navigator.pushReplacementNamed( context, 'usuarios' );
                 } else {
                   mostrarAlerta(context, 'Login incorrecto', 'Revise sus credenciales nuevamente' );
